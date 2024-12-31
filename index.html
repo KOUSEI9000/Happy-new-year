@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Year Fireworks with Sound</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: black;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        #message {
+            position: absolute;
+            font-size: 3em;
+            opacity: 0;
+            transition: opacity 1s;
+            text-align: center;
+            text-shadow: 0 0 5px #fff, 0 0 10px #ff8c00, 0 0 20px #ff8c00,
+                         0 0 30px #ffa500, 0 0 40px #ffa500, 0 0 50px #ffa500;
+            animation: neon-glow 2s infinite alternate;
+        }
+
+        @keyframes neon-glow {
+            0% {
+                text-shadow: 0 0 5px #fff, 0 0 10px #ff8c00, 0 0 20px #ff8c00,
+                             0 0 30px #ffa500, 0 0 40px #ffa500, 0 0 50px #ffa500;
+            }
+            100% {
+                text-shadow: 0 0 10px #fff, 0 0 15px #ff8c00, 0 0 25px #ff8c00,
+                             0 0 35px #ffa500, 0 0 45px #ffa500, 0 0 60px #ffa500;
+            }
+        }
+
+        #loveButton {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 5px 15px; /* Smaller button size */
+            font-size: 0.9em; /* Smaller font */
+            background: linear-gradient(45deg, #ff6b6b, #ff8c00);
+            border: none;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+            box-shadow: 0 0 10px #ff6b6b, 0 0 20px #ff8c00;
+            transition: transform 0.2s;
+        }
+
+        #loveButton:hover {
+            transform: scale(1.1);
+        }
+
+        #loveCard {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            height: 120px;
+            background: linear-gradient(135deg, #ff6b6b, #ff8c00);
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.7);
+            text-align: center;
+            padding: 20px;
+            color: white;
+            font-family: 'Georgia', serif;
+            line-height: 1.5;
+            border: 2px solid white;
+        }
+
+        #loveCard h2 {
+            margin-top: 0;
+            font-size: 2em;
+            text-shadow: 0 0 5px white, 0 0 10px #ff6b6b;
+        }
+
+        #loveCard p {
+            font-size: 1em;
+        }
+    </style>
+</head>
+<body>
+    <div id="message">HAPPY NEW YEAR 
+  </div>
+    <canvas id="fireworksCanvas"></canvas>
+    <audio id="fireworkSound" src="firework-sound.mp3" preload="auto"></audio>
+    <button id="loveButton">wews</button>
+    <div id="loveCard">
+        <h2>HAPPY NEW YEAR!</h2>
+        <p>
+            Hi pre, Happy New Year! Stay kupal!
+            <br>
+            -Kousei
+        </p>
+    </div>
+    <script>
+        const canvas = document.getElementById('fireworksCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const loveButton = document.getElementById('loveButton');
+        const loveCard = document.getElementById('loveCard');
+
+        loveButton.addEventListener('click', () => {
+            loveCard.style.display = 'block';
+        });
+
+        function Firework(x, y) {
+            this.x = x;
+            this.y = y;
+            this.size = Math.random() * 3 + 2;
+            this.color = 'hsl(' + Math.random() * 360 + ', 100%, 50%)';
+            this.particles = [];
+            this.exploded = false;
+
+            this.update = function() {
+                if (!this.exploded) {
+                    this.y -= 5;
+                    if (this.y < canvas.height / 3) {
+                        this.explode();
+                    }
+                } else {
+                    for (let i = this.particles.length - 1; i >= 0; i--) {
+                        this.particles[i].update();
+                        if (this.particles[i].alpha <= 0) {
+                            this.particles.splice(i, 1);
+                        }
+                    }
+                }
+            };
+
+            this.explode = function() {
+                this.exploded = true;
+                document.getElementById('fireworkSound').play();
+                for (let i = 0; i < 100; i++) {
+                    this.particles.push(new Particle(this.x, this.y, this.color));
+                }
+            };
+
+            this.draw = function() {
+                if (!this.exploded) {
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fill();
+                } else {
+                    for (let i = 0; i < this.particles.length; i++) {
+                        this.particles[i].draw();
+                    }
+                }
+            };
+        }
+
+        function Particle(x, y, color) {
+            this.x = x;
+            this.y = y;
+            this.size = Math.random() * 2 + 1;
+            this.speedX = (Math.random() - 0.5) * 6;
+            this.speedY = (Math.random() - 0.5) * 6;
+            this.color = color;
+            this.alpha = 1;
+
+            this.update = function() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.alpha -= 0.02;
+            };
+
+            this.draw = function() {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            };
+        }
+
+        const fireworks = [];
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (Math.random() < 0.05) {
+                fireworks.push(new Firework(Math.random() * canvas.width, canvas.height));
+            }
+            for (let i = fireworks.length - 1; i >= 0; i--) {
+                fireworks[i].update();
+                fireworks[i].draw();
+                if (fireworks[i].particles.length === 0 && fireworks[i].exploded) {
+                    fireworks.splice(i, 1);
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                document.getElementById('message').style.opacity = 1;
+            }, 2000);
+            animate();
+        });
+    </script>
+</body>
+</html>
